@@ -14,6 +14,12 @@ set(BYTELET_CLI_NAME  "bytelet")   # executable / command name
 
 project(${BYTELET_LANG_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
+if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR
+        "Bytelet requires a 64-bit build (got ${CMAKE_SIZEOF_VOID_P}-byte pointers). "
+        "Open an x64 developer shell, or use the x64 preset in Visual Studio.")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

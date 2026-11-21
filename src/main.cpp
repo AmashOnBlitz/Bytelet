@@ -15,7 +15,7 @@ namespace {
 		std::cout
 			<< kLanguageName << ' ' << kVersion << " - a small scripting language\n\n"
 			<< "Usage:\n"
-			<< "  " << kCliName << " <script" << kFileExtension << ">                Run a script (not implemented yet)\n"
+			<< "  " << kCliName << " <script" << kFileExtension << ">                  Run a script (not implemented yet)\n"
 			<< "  " << kCliName << " build <script" << kFileExtension << "> -o <exe>   Compile natively (not implemented yet)\n"
 			<< "  " << kCliName << " --version                     Print version\n"
 			<< "  " << kCliName << " --help                        Print this help\n";
