@@ -19,7 +19,7 @@ enum class TokenType {
 
 	Equal,
 	EqualEqual,
-	Bang,
+	//Bang,
 	BangEqual,
 	Less,
 	LessEqual,
@@ -44,7 +44,39 @@ enum class TokenType {
 	BlockComment,
 
 	EndOfFile,
-	Error
+	Error,
+
+	Identifier,
+
+	IntLiteral,
+	FloatLiteral,
+	StringLiteral,
+
+	KwLet,
+	KwVar,
+	KwFn,
+	KwIf,
+	KwElse,
+	KwFor,
+	KwWhile,
+	KwIn,
+	KwBreak,
+	KwContinue,
+	KwReturn,
+	KwImport,
+
+	KwInt,
+	KwFloat,
+	KwBool,
+	KwString,
+	KwVoid,
+
+	KwTrue,
+	KwFalse,
+
+	KwAnd,
+	KwOr,
+	KwNot
 };
 
 struct Token
@@ -74,7 +106,7 @@ inline const char* TokenTypeName(TokenType type) {
 
 	case TokenType::Equal:         return "Equal";
 	case TokenType::EqualEqual:    return "EqualEqual";
-	case TokenType::Bang:          return "Bang";
+	//case TokenType::Bang:          return "Bang";
 	case TokenType::BangEqual:     return "BangEqual";
 	case TokenType::Less:          return "Less";
 	case TokenType::LessEqual:     return "LessEqual";
@@ -100,6 +132,38 @@ inline const char* TokenTypeName(TokenType type) {
 
 	case TokenType::EndOfFile:     return "EndOfFile";
 	case TokenType::Error:         return "Error";
+
+	case TokenType::Identifier:      return "Identifier";
+
+	case TokenType::IntLiteral:      return "IntLiteral";
+	case TokenType::FloatLiteral:    return "FloatLiteral";
+	case TokenType::StringLiteral:   return "StringLiteral";
+
+	case TokenType::KwLet:           return "KwLet";
+	case TokenType::KwVar:           return "KwVar";
+	case TokenType::KwFn:            return "KwFn";
+	case TokenType::KwIf:            return "KwIf";
+	case TokenType::KwElse:          return "KwElse";
+	case TokenType::KwFor:           return "KwFor";
+	case TokenType::KwWhile:         return "KwWhile";
+	case TokenType::KwIn:            return "KwIn";
+	case TokenType::KwBreak:         return "KwBreak";
+	case TokenType::KwContinue:      return "KwContinue";
+	case TokenType::KwReturn:        return "KwReturn";
+	case TokenType::KwImport:        return "KwImport";
+
+	case TokenType::KwInt:           return "KwInt";
+	case TokenType::KwFloat:         return "KwFloat";
+	case TokenType::KwBool:          return "KwBool";
+	case TokenType::KwString:        return "KwString";
+	case TokenType::KwVoid:          return "KwVoid";
+
+	case TokenType::KwTrue:          return "KwTrue";
+	case TokenType::KwFalse:         return "KwFalse";
+
+	case TokenType::KwAnd:           return "KwAnd";
+	case TokenType::KwOr:            return "KwOr";
+	case TokenType::KwNot:           return "KwNot";
 	}
 	return "Unknown";
 }

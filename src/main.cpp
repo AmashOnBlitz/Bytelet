@@ -11,6 +11,8 @@ namespace {
 	using namespace bytelet::build;
 	constexpr int EXITOK = 0;
 	constexpr int EXITUSAGE = 64;
+	constexpr int EXITDATAERR = 65;
+	constexpr int EXITNOINPUT = 66;
 
 	void printVersion() {
 		std::cout << CLINAME << ' ' << VERSION << "\n";
@@ -28,20 +30,14 @@ namespace {
 }
 
 [[nodiscard]]
-bool DumpTokens(std::string path) {
-	std::filesystem::path _path(path);
-	if (!std::filesystem::exists(_path)) {
-		std::cerr << "error: path doesn't exist\n\n";
-		return false;
-	}
-	std::ifstream f(_path);
+int DumpTokens(const std::string& path) {
+	std::ifstream f(path, std::ios::binary);
 	if (!f) {
-		std::cerr << "error: cannot open file\n\n";
-		return false;
+		std::cerr << "error: cannot open '" << path << "'\n";
+		return EXITNOINPUT;
 	}
 	std::stringstream buff;
 	buff << f.rdbuf();
-
 	std::string corpus = buff.str();
 
 	Lexer lexer(corpus);
@@ -52,11 +48,10 @@ bool DumpTokens(std::string path) {
 			<< token.lexeme << " | " << TokenTypeName(token.type) << "\n";
 	}
 	for (const auto& err : lexer.errors()) {
-		std::cout << "[" << err.line << ":" << err.column << "] "
-			<< "error: " << err.msg << "\n";
+		std::cerr << path << ":" << err.line << ":" << err.column
+			<< ": error: " << err.msg << "\n";
 	}
-
-	return true;
+	return lexer.errors().empty() ? EXITOK : EXITDATAERR;
 }
 
 int main(int argc, char* argv[]) {
@@ -84,14 +79,16 @@ int main(int argc, char* argv[]) {
 
 	int iCmd = 2;
 	std::string path(arg);
-	if (arg == "build") path = std::string(argv[iCmd++]);
-	if (argc >= iCmd && std::string_view(argv[iCmd]) == "--tokens") {
-		if (DumpTokens(path)) {
-			return EXITOK;
-		}
-		else {
+	if (arg == "build") {
+		if (argc < 3) {
+			std::cerr << "error: 'build' needs a script path\n";
 			return EXITUSAGE;
 		}
+		path = argv[2];
+		iCmd = 3;
+	}
+	if (argc > iCmd && std::string_view(argv[iCmd]) == "--tokens") {
+		return DumpTokens(path);
 	}
 
 	std::cerr << "error: running scripts is not implemented yet (got '" << arg << ";)\n";

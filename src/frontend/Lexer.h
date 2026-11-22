@@ -28,7 +28,7 @@ private:
 	void Advance();
 	char Peek();
 	bool atEnd();
-	void SkipWhitespace();
+	void SkipTrivia();
 	Token scanToken();
 	Token MakeToken(TokenType type) const;
 private:

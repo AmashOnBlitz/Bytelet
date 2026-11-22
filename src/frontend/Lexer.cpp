@@ -1,5 +1,43 @@
-#include "lexer.h"
+#include "Lexer.h"
 #include <iostream>
+#include <unordered_map>
+
+static bool IsAlpha(char c) {
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_'));
+}
+
+static bool IsDigit(char c) {
+	return ((c >= '0' && c <= '9'));
+}
+
+static bool IsPeriod(char c) {
+	return (c == '.');
+}
+
+static const std::unordered_map<std::string_view, TokenType> KEYWORDS = {
+	{ "let",      TokenType::KwLet },
+	{ "var",      TokenType::KwVar },
+	{ "fn",       TokenType::KwFn },
+	{ "if",       TokenType::KwIf },
+	{ "else",     TokenType::KwElse },
+	{ "for",      TokenType::KwFor },
+	{ "while",    TokenType::KwWhile },
+	{ "in",       TokenType::KwIn },
+	{ "break",    TokenType::KwBreak },
+	{ "continue", TokenType::KwContinue },
+	{ "return",   TokenType::KwReturn },
+	{ "import",   TokenType::KwImport },
+	{ "int",	  TokenType::KwInt },    
+	{ "float",    TokenType::KwFloat },
+	{ "bool",     TokenType::KwBool },   
+	{"string",	  TokenType::KwString },
+	{ "void",     TokenType::KwVoid },
+	{ "true",     TokenType::KwTrue },   
+	{ "false",    TokenType::KwFalse },
+	{ "and",      TokenType::KwAnd },    
+	{ "or",		  TokenType::KwOr },
+	{ "not",      TokenType::KwNot },
+};
 
 Lexer::Lexer(std::string_view corpus) :
 	mCorpus(corpus)
@@ -7,9 +45,7 @@ Lexer::Lexer(std::string_view corpus) :
 
 }
 
-
-Lexer::~Lexer()
-{
+Lexer::~Lexer() {
 
 }
 
@@ -46,8 +82,7 @@ char Lexer::Current()
 	return mCorpus[mCurrent];
 }
 
-void Lexer::Advance()
-{
+void Lexer::Advance() {
 	if (atEnd()) return;
 	char c = mCorpus[mCurrent];
 	mCurrent += 1;
@@ -71,7 +106,7 @@ bool Lexer::atEnd()
 	return mCurrent >= mCorpus.size();
 }
 
-void Lexer::SkipWhitespace()
+void Lexer::SkipTrivia()
 {
 	while (!atEnd()) {
 		mTmpChar = Current();
@@ -82,8 +117,32 @@ void Lexer::SkipWhitespace()
 		{
 			Advance();
 		}
-		else
-		{
+		else if (mTmpChar == '/' && Peek() == '/') {
+			while (!atEnd() && Current() != '\n') {
+				Advance();
+			}
+		}
+		else if (mTmpChar == '/' && Peek() == '*') {
+			int cLine = mLine;
+			int cCol = mColumn;
+			Advance();
+			Advance();
+
+			bool closed = false;
+			while (!atEnd()) {
+				if (Current() == '*' && Peek() == '/') {
+					Advance();
+					Advance();
+					closed = true;
+					break;
+				}
+				Advance();
+			}
+			if (!closed) {
+				mErrors.push_back({ cLine, cCol, "unterminated block comment" });
+			}
+		}
+		else {
 			break;
 		}
 	}
@@ -190,7 +249,9 @@ Token Lexer::scanToken() {
 			return MakeToken(TokenType::BangEqual);
 		}
 		else {
-			return MakeToken(TokenType::Bang);
+			Token tkn = MakeToken(TokenType::Error);
+			mErrors.push_back({ mStartLine, mStartColumn, "unexpected '!' (use 'not' for logical negation)" });
+			return tkn;
 		}
 	}
 	case '<': {
@@ -234,6 +295,35 @@ Token Lexer::scanToken() {
 	}
 
 	default:
+
+		if (IsAlpha(c)) {
+			while (IsAlpha(Current()) || IsDigit(Current())) {
+				Advance();
+			}
+			Token tkn = MakeToken(TokenType::Identifier);
+			auto index = KEYWORDS.find(tkn.lexeme);
+			if (index != KEYWORDS.end()) {
+				tkn.type = index->second;
+			}
+			return tkn;
+		}
+
+		if (IsDigit(c)) {
+			TokenType type = TokenType::IntLiteral;
+			while (IsDigit(Current())) {
+				Advance();
+			}
+			if (IsPeriod(Current()) && IsDigit(Peek())) {
+				type = TokenType::FloatLiteral;
+				Advance();
+				while (IsDigit(Current())) {
+					Advance();
+				}
+			}
+
+			return MakeToken(type);
+		}
+
 		Token tkn = MakeToken(TokenType::Error);
 		std::string errMsg = "unexpected character \"";
 		errMsg += tkn.lexeme;
@@ -265,7 +355,7 @@ std::vector<Token> Lexer::Tokenize()
 	refreshVariables();
 	while (true)
 	{
-		SkipWhitespace();
+		SkipTrivia();
 		mStart = mCurrent;
 		mStartLine = mLine;
 		mStartColumn = mColumn;
