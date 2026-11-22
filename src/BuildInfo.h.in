@@ -3,8 +3,8 @@
 
 // GENERATED from src/BuildInfo.h.in by CMake. Do not edit the generated copy.
 namespace bytelet::build {
-inline constexpr std::string_view kLanguageName  = "@BYTELET_LANG_NAME@";
-inline constexpr std::string_view kFileExtension = "@BYTELET_FILE_EXT@";
-inline constexpr std::string_view kCliName       = "@BYTELET_CLI_NAME@";
-inline constexpr std::string_view kVersion       = "@PROJECT_VERSION@";
+inline constexpr std::string_view LANGUAGENAME  = "@BYTELET_LANG_NAME@";
+inline constexpr std::string_view FILEEXTENSION = "@BYTELET_FILE_EXT@";
+inline constexpr std::string_view CLINAME       = "@BYTELET_CLI_NAME@";
+inline constexpr std::string_view VERSION       = "@PROJECT_VERSION@";
 }  // namespace bytelet::build

@@ -1,0 +1,11 @@
+@ # $ ^ ~ ` ? \ |
+123abc_foo
+
+/* closed block comment */
+/* another closed one with * inside */
+
+/* unterminated block comment at end of file
+
+/* unterminated block comment with nested looking /* inside */ still unclosed
+
+/*

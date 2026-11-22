@@ -6,11 +6,9 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-# ===== SINGLE SOURCE OF TRUTH: change the language identity here only =====
-set(BYTELET_LANG_NAME "Bytelet")
+set(BYTELET_LANG_NAME "Bytelite")
 set(BYTELET_FILE_EXT  ".byt")
-set(BYTELET_CLI_NAME  "bytelet")   # executable / command name
-# =========================================================================
+set(BYTELET_CLI_NAME  "bytelite")  
 
 project(${BYTELET_LANG_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
@@ -24,10 +22,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Generate BuildInfo.h from the variables above.
 configure_file(src/BuildInfo.h.in generated/BuildInfo.h @ONLY)
 
-add_executable(${BYTELET_CLI_NAME} src/main.cpp)
+add_executable(${BYTELET_CLI_NAME} 
+src/main.cpp
+src/frontend/lexer.cpp
+src/frontend/lexer.h
+)
 target_include_directories(${BYTELET_CLI_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 if (MSVC)
