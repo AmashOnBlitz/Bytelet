@@ -28,6 +28,9 @@ add_executable(${BYTELET_CLI_NAME}
 src/main.cpp
 src/frontend/lexer.cpp
 src/frontend/lexer.h
+src/frontend/Parser.cpp
+src/frontend/Parser.h
+src/frontend/Ast.h
 )
 target_include_directories(${BYTELET_CLI_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 

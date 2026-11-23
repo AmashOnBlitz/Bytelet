@@ -6,3 +6,7 @@
 "Escaped: \${ not code }"
 { }
 "Bad: ${ never closed
+
+12abc
+123hello
+45.6xyz

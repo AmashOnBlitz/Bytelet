@@ -22,7 +22,7 @@ public:
 	std::vector<LexError>& errors();
 
 private:
-	void refreshVariables();
+	void RefreshVariables();
 	char Current();
 	void Advance();
 	char Peek();
@@ -30,9 +30,9 @@ private:
 	void SkipTrivia();
 	Token scanToken();
 	Token MakeToken(TokenType type) const;
-	bool ScanStringBody();
+	//bool ScanStringBody();
 	Token ScanStringText(bool fromBrace);
-	bool SkipInterpolation();
+	//bool SkipInterpolation();
 private:
 	std::string_view mCorpus;
 	std::size_t mStart= 0;

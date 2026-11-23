@@ -64,7 +64,7 @@ std::vector<LexError>& Lexer::errors()
 	return mErrors;
 }
 
-void Lexer::refreshVariables()
+void Lexer::RefreshVariables()
 {
 	mStart = 0;
 	mCurrent = 0;
@@ -193,6 +193,8 @@ Token Lexer::scanToken() {
 			return MakeToken(TokenType::Star);
 		}
 	}
+	// Comment handling is moved to trivia, comment code below here is dead
+	// for later reference
 	case '/': {
 		if (nxt == '=') {
 			Advance();
@@ -405,7 +407,7 @@ Token Lexer::ScanStringText(bool fromBrace)
 
 std::vector<Token> Lexer::Tokenize()
 {
-	refreshVariables();
+	RefreshVariables();
 	while (true)
 	{
 		SkipTrivia();

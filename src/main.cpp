@@ -6,6 +6,7 @@
 #include "frontend/Lexer.h"
 #include <sstream>
 #include <vector>
+#include "frontend/Parser.h"
 
 namespace {
 	using namespace bytelet::build;
@@ -54,6 +55,32 @@ int DumpTokens(const std::string& path) {
 	return lexer.errors().empty() ? EXITOK : EXITDATAERR;
 }
 
+[[nodiscard]]
+int PrintAst(const std::string& source) {
+	Lexer lexer(source);
+	std::vector<Token> tokens = lexer.Tokenize();
+
+	if (!lexer.errors().empty()) {
+		for (const auto& err : lexer.errors()) {
+			std::cerr << "<expr>:" << err.line << ":" << err.column
+				<< ": error: " << err.msg << "\n";
+		}
+		return EXITDATAERR;
+	}
+
+	Parser parser(tokens);
+	ExpressionPointer tree = parser.ParseExpression();
+	if (!tree) {
+		for (const auto& err : parser.Errors()) {
+			std::cerr << "<expr>:" << err.line << ":" << err.column
+				<< ": error: " << err.msg << "\n";
+		}
+		return EXITDATAERR;
+	}
+	std::cout << tree->ToString() << "\n";
+	return EXITOK;
+}
+
 int main(int argc, char* argv[]) {
 
 	if (argc < 2) {
@@ -71,7 +98,13 @@ int main(int argc, char* argv[]) {
 		printHelp();
 		return EXITOK;
 	}
-
+	if (arg == "--expr") {
+		if (argc < 3) {
+			std::cerr << "error: --expr needs an expression in quotes\n";
+			return EXITUSAGE;
+		}
+		return PrintAst(argv[2]);
+	}
 	if (arg.starts_with("-")) {
 		std::cerr << "error: unknown option '" << arg << "'\n";
 		return EXITUSAGE;
