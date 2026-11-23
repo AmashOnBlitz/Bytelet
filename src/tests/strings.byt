@@ -1,0 +1,6 @@
+"hello" "" "a\"b" "tab\there"
+"bad \q escape"
+"never closed
+"c:\\"
+"end with backslash\
+"Hello ${name}!"

@@ -275,8 +275,6 @@ Token Lexer::scanToken() {
 
 	case '(': return MakeToken(TokenType::LParen);
 	case ')': return MakeToken(TokenType::RParen);
-	case '{': return MakeToken(TokenType::LBrace);
-	case '}': return MakeToken(TokenType::RBrace);
 	case '[': return MakeToken(TokenType::LBracket);
 	case ']': return MakeToken(TokenType::RBracket);
 
@@ -293,6 +291,25 @@ Token Lexer::scanToken() {
 			return MakeToken(TokenType::Dot);
 		}
 	}
+
+	case '"':
+		return ScanStringText(false);
+
+	case '{':
+		if (!mInterpDepth.empty()) mInterpDepth.back()++;
+		return MakeToken(TokenType::LBrace);
+
+	case '}':
+		if (!mInterpDepth.empty()) {
+			if (mInterpDepth.back() > 0) {
+				mInterpDepth.back()--;
+				return MakeToken(TokenType::RBrace);
+			}
+			mInterpDepth.pop_back();
+			return ScanStringText(true);
+		}
+		return MakeToken(TokenType::RBrace);
+
 
 	default:
 
@@ -349,6 +366,42 @@ Token Lexer::MakeToken(TokenType type) const
 	return token;
 }
 
+Token Lexer::ScanStringText(bool fromBrace)
+{
+	while (!atEnd() && Current() != '\n' && Current() != '\r') {
+		char ch = Current();
+
+		if (ch == '"') {
+			Advance();
+			return MakeToken(fromBrace ? TokenType::StringEnd
+							 : TokenType::StringLiteral);
+		}
+		if (ch == '\\') {
+			int escLine = mLine, escCol = mColumn;
+			Advance();
+			if (atEnd() || Current() == '\n' || Current() == '\r') break;
+			char e = Current();
+			if (e != 'n' && e != 't' && e != 'r' && e != '0' &&
+				e != '\\' && e != '"' && e != '$') {
+				mErrors.push_back({ escLine, escCol, "invalid escape sequence" });
+			}
+			Advance();
+		}
+		else if (ch == '$' && Peek() == '{') {
+			Advance();
+			Advance();
+			mInterpDepth.push_back(0);
+			return MakeToken(fromBrace ? TokenType::StringMiddle
+							 : TokenType::StringStart);
+		}
+		else {
+			Advance();
+		}
+	}
+	Token tkn = MakeToken(TokenType::Error);
+	mErrors.push_back({ mStartLine, mStartColumn, "unterminated string" });
+	return tkn;
+}
 
 std::vector<Token> Lexer::Tokenize()
 {
@@ -360,6 +413,10 @@ std::vector<Token> Lexer::Tokenize()
 		mStartLine = mLine;
 		mStartColumn = mColumn;
 		if (atEnd()) {
+			if (!mInterpDepth.empty()) {
+				mErrors.push_back({ mLine, mColumn, "unterminated interpolation" });
+				mInterpDepth.clear();
+			}
 			mTokens.push_back(MakeToken(TokenType::EndOfFile));
 			break;
 		}

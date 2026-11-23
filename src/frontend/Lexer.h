@@ -23,7 +23,6 @@ public:
 
 private:
 	void refreshVariables();
-	
 	char Current();
 	void Advance();
 	char Peek();
@@ -31,6 +30,9 @@ private:
 	void SkipTrivia();
 	Token scanToken();
 	Token MakeToken(TokenType type) const;
+	bool ScanStringBody();
+	Token ScanStringText(bool fromBrace);
+	bool SkipInterpolation();
 private:
 	std::string_view mCorpus;
 	std::size_t mStart= 0;
@@ -41,6 +43,7 @@ private:
 	int mStartColumn = 1;
 	std::vector<LexError> mErrors;
 	std::vector<Token> mTokens;
+	std::vector<int> mInterpDepth;
 	char mTmpChar;
 };
 

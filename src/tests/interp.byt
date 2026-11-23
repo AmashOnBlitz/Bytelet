@@ -1,0 +1,8 @@
+"plain"
+"${a}${b}"
+"Call: ${f("x")} done"
+"Braces: ${ {1} } ok"
+"Nested: ${ "in ${deep}" }"
+"Escaped: \${ not code }"
+{ }
+"Bad: ${ never closed

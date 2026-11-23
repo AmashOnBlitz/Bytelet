@@ -76,7 +76,11 @@ enum class TokenType {
 
 	KwAnd,
 	KwOr,
-	KwNot
+	KwNot,
+
+	StringStart,
+	StringMiddle,
+	StringEnd
 };
 
 struct Token
@@ -164,6 +168,10 @@ inline const char* TokenTypeName(TokenType type) {
 	case TokenType::KwAnd:           return "KwAnd";
 	case TokenType::KwOr:            return "KwOr";
 	case TokenType::KwNot:           return "KwNot";
+
+	case TokenType::StringStart:   return "StringStart";
+	case TokenType::StringMiddle:  return "StringMiddle";
+	case TokenType::StringEnd:     return "StringEnd";
 	}
 	return "Unknown";
 }
