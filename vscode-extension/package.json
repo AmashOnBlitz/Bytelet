@@ -1,0 +1,104 @@
+{
+  "name": "bytelite",
+  "displayName": "Bytelite",
+  "description": "Syntax highlighting and language support for Bytelite (.byt)",
+  "version": "0.1.0",
+  "publisher": "bytelite",
+  "engines": { "vscode": "^1.60.0" },
+  "categories": [ "Programming Languages" ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:bytelite",
+    "onCommand:bytelite.configureColors",
+    "onCommand:bytelite.resetColors"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "bytelite",
+        "aliases": [ "Bytelite", "byt" ],
+        "extensions": [ ".byt" ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bytelite",
+        "scopeName": "source.byt",
+        "path": "./syntaxes/bytelite.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "bytelite.configureColors",
+        "title": "Bytelite: Configure Syntax Colors",
+        "category": "Bytelite"
+      },
+      {
+        "command": "bytelite.resetColors",
+        "title": "Bytelite: Reset Colors to Default",
+        "category": "Bytelite"
+      }
+    ],
+    "configuration": {
+      "title": "Bytelite",
+      "properties": {
+        "bytelite.color.keyword": {
+          "type": "string",
+          "default": "#C586C0",
+          "description": "Color for keywords (let, if, else, for, while, return, ...)"
+        },
+        "bytelite.color.import": {
+          "type": "string",
+          "default": "#FFD700",
+          "description": "Color for the import keyword"
+        },
+        "bytelite.color.var": {
+          "type": "string",
+          "default": "#90EE90",
+          "description": "Color for the var keyword"
+        },
+        "bytelite.color.fn": {
+          "type": "string",
+          "default": "#4EC9B0",
+          "description": "Color for fn keyword"
+        },
+        "bytelite.color.type": {
+          "type": "string",
+          "default": "#DCDCAA",
+          "description": "Color for types (int, float, bool, string, void)"
+        },
+        "bytelite.color.function": {
+          "type": "string",
+          "default": "#569CD6",
+          "description": "Color for functions (print, len, ...)"
+        },
+        "bytelite.color.variable": {
+          "type": "string",
+          "default": "#FF8080",
+          "description": "Color for variables and identifiers"
+        },
+        "bytelite.color.number": {
+          "type": "string",
+          "default": "#B5CEA8",
+          "description": "Color for numbers"
+        },
+        "bytelite.color.string": {
+          "type": "string",
+          "default": "#CE9178",
+          "description": "Color for strings"
+        },
+        "bytelite.color.operator": {
+          "type": "string",
+          "default": "#D4D4D4",
+          "description": "Color for operators (+, =, ==, ->, ...)"
+        },
+        "bytelite.color.comment": {
+          "type": "string",
+          "default": "#D896FF",
+          "description": "Color for comments"
+        }
+      }
+    }
+  }
+}
