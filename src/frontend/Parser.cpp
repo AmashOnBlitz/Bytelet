@@ -239,7 +239,7 @@ StatementPointer Parser::Declaration()
 	else if (typeName.empty()) {
 		Fail(name, "cannot infer type of '" + std::string(name.lexeme) + "': add a type or an initializer");
 	}
-	Expect(TokenType::Semicolon, "expected ';' after declaration");
+	ExpectSemicolon( "expected ';' after declaration");
 
 	return std::make_unique<VarDeclStatement>(
 		isMutable,
@@ -276,7 +276,7 @@ StatementPointer Parser::SimpleStatement()
 		}
 
 		ExpressionPointer val = Expression();
-		Expect(TokenType::Semicolon, "expected ';' after assignment");
+		ExpectSemicolon( "expected ';' after assignment");
 		return std::make_unique<AssignStatement>(
 			std::string(opr.lexeme),
 			std::move(target),
@@ -294,7 +294,7 @@ StatementPointer Parser::SimpleStatement()
 			Fail(opr, "invalid increment/decrement target");
 		}
 
-		Expect(TokenType::Semicolon, "expected ';' after increment/decrement");
+		ExpectSemicolon( "expected ';' after increment/decrement");
 		return std::make_unique<AssignStatement>(
 			std::string(opr.lexeme),
 			std::move(target),
@@ -305,7 +305,7 @@ StatementPointer Parser::SimpleStatement()
 	}
 	const int line = target->line;
 	const int column = target->column;
-	Expect(TokenType::Semicolon, "expected ';' after expression");
+	ExpectSemicolon( "expected ';' after expression");
 
 	return std::make_unique<ExprStatement>(
 		std::move(target),
@@ -320,11 +320,14 @@ std::vector<StatementPointer> Parser::ParseProgram() {
 	mPos = 0;
 	mDepth = 0;
 	std::vector<StatementPointer> program;
-	try {
-		while (!AtEnd()) program.push_back(Statement());
-	}
-	catch (const ParseFailure&) {
-		program.clear();
+	while (!AtEnd()) {
+		try {
+			program.push_back(Statement());
+		}
+		catch (const ParseFailure&) {
+			mDepth = 0;
+			Synchronize();
+		}
 	}
 	return program;
 }
@@ -332,4 +335,21 @@ std::vector<StatementPointer> Parser::ParseProgram() {
 bool Parser::IsPlace(const ::Expression& e) {
 	return dynamic_cast<const IdentExpr*>(&e) != nullptr ||
 		dynamic_cast<const IndexExpr*>(&e) != nullptr;
+}
+
+void Parser::Synchronize()
+{
+	while (!AtEnd()) {
+		if (Previous().type == TokenType::Semicolon) return;
+		if (Check(TokenType::KwLet) || Check(TokenType::KwVar)) return;
+		Advance();
+	}
+}
+
+void Parser::ExpectSemicolon(const std::string& msg)
+{
+	if (Check(TokenType::Semicolon)) { Advance(); return; }
+	const Token& last = Previous();
+	mErrors.push_back({ last.line, last.column + static_cast<int>(last.lexeme.size()), msg });
+	throw ParseFailure{};
 }

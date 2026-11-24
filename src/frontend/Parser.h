@@ -32,6 +32,8 @@ private:
 	const Token& Expect(TokenType type, const std::string& msg);
 	[[noreturn]]
 	void Fail(const Token& at, const std::string& msg);
+	void Synchronize();
+	void ExpectSemicolon(const std::string& msg);
 
 	ExpressionPointer Expression();
 	ExpressionPointer ParseBinary(std::size_t level);

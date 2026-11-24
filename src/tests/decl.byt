@@ -1,5 +1,24 @@
 let name = "Amash";
 var age: int = 16;
-var score: int;
-var title: string;
-let total = 10 + 5 * 2;
+
+age += 1;
+age++;
+age--;
+age = 20;
+
+let x;
+scores[0] = 50;
+
+var score: int = 100;
+score -= 10;
+
+let = 5;
+print(f(age, 2)[0]);
+
+let x: = 5;
+var total = 50;
+total *= 2;
+
+let x = 5
+age /= 2;
+print(total);
