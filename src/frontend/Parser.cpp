@@ -90,9 +90,9 @@ ExpressionPointer Parser::Expression()
 }
 
 ExpressionPointer Parser::ParseBinary(std::size_t level) {
-	if (level == LEVELS.size()) return Unary();      // bottom of the binary ladder
+	if (level == LEVELS.size()) return Unary();
 
-	ExpressionPointer left = ParseBinary(level + 1);           // ask the stickier level first
+	ExpressionPointer left = ParseBinary(level + 1);
 	while (MatchAny(LEVELS[level])) {
 		const Token& op = Previous();
 		ExpressionPointer right = ParseBinary(level + 1);
@@ -119,7 +119,7 @@ ExpressionPointer Parser::Unary() {
 }
 
 ExpressionPointer Parser::Primary() {
-	const Token t = Current();       // copy: small struct, avoids reference surprises
+	const Token t = Current();
 
 	switch (t.type) {
 	case TokenType::IntLiteral: {

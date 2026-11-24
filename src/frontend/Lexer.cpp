@@ -340,6 +340,15 @@ Token Lexer::scanToken() {
 				}
 			}
 
+			if (IsAlpha(Current())) {
+				while (IsAlpha(Current()) || IsDigit(Current())) {
+					Advance();
+				}
+				Token bad = MakeToken(TokenType::Error);
+				mErrors.push_back({ mStartLine, mStartColumn, "invalid numeric literal" });
+				return bad;
+			}
+
 			return MakeToken(type);
 		}
 
