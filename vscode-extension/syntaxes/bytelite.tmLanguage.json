@@ -1,0 +1,99 @@
+{
+  "name": "Bytelite",
+  "scopeName": "source.byt",
+  "fileTypes": [ "byt" ],
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#import" },
+    { "include": "#var" },
+    { "include": "#number" },
+    { "include": "#fn" },
+    { "include": "#arrow" },
+    { "include": "#colon" },
+    { "include": "#keyword" },
+    { "include": "#type" },
+    { "include": "#builtin" },
+    { "include": "#interpolation" },
+    { "include": "#array" },
+    { "include": "#range" },
+    { "include": "#identifier" },
+    { "include": "#operator" }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        { "name": "comment.line.double-slash", "match": "//.*" },
+        { "name": "comment.block", "begin": "/\\*", "end": "\\*/" }
+      ]
+    },
+    "string": {
+      "name": "string.quoted.double",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        { "name": "constant.character.escape", "match": "\\\\[ntr0\\\"\\$\\\\]" },
+        { "include": "#interpolation" }
+      ]
+    },
+    "import": {
+      "name": "keyword.control.import",
+      "match": "\\bimport\\b"
+    },
+    "var": {
+      "name": "keyword.control.var",
+      "match": "\\bvar\\b"
+    },
+    "fn": {
+      "name": "keyword.control.function",
+      "match": "\\bfn\\b"
+    },
+    "arrow": {
+      "name": "keyword.operator",
+      "match": "->"
+    },
+    "colon": {
+      "name": "punctuation.separator",
+      "match": ":"
+    },
+    "keyword": {
+      "name": "keyword",
+      "match": "\\b(let|if|else|for|while|return|break|continue|in|true|false|and|or|not)\\b"
+    },
+    "type": {
+      "name": "storage.type",
+      "match": "\\b(int|float|bool|string|void)\\b"
+    },
+    "builtin": {
+      "name": "entity.name.function",
+      "match": "\\b(print|len|input|range|type|str|int|float|bool)\\b"
+    },
+    "interpolation": {
+      "name": "string.interpolated",
+      "begin": "\\$\\{",
+      "end": "\\}",
+      "patterns": [
+        { "include": "#keyword" },
+        { "include": "#identifier" },
+        { "include": "#number" },
+        { "include": "#operator" }
+      ]
+    },
+    "array": {
+      "name": "punctuation.bracket",
+      "match": "\\[|\\]"
+    },
+    "range": {
+      "name": "keyword.operator",
+      "match": "\\.\\."
+    },
+    "identifier": {
+      "name": "variable.parameter",
+      "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+    },
+    "operator": {
+      "name": "keyword.operator",
+      "match": "\\+\\+|--|\\+=|-=|\\*=|/=|==|!=|<=|>=|\\+|-|\\*|/|%|<|>|=|,|\\(|\\)|\\{|\\}"
+    }
+  }
+}
