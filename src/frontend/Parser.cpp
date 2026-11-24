@@ -77,6 +77,7 @@ bool Parser::Check(TokenType type) const
 	return Current().type == type;
 }
 
+
 const Token& Parser::Expect(TokenType type, const std::string& msg) {
 	if (Check(type)) return Advance();
 	Fail(Current(), msg);
@@ -252,7 +253,65 @@ StatementPointer Parser::Declaration()
 
 StatementPointer Parser::Statement()
 {
-	return Declaration();
+	if (Check(TokenType::KwLet) || Check(TokenType::KwVar))
+		return Declaration();
+
+	return SimpleStatement();
+}
+
+StatementPointer Parser::SimpleStatement()
+{
+	ExpressionPointer target = Expression();
+
+	if (MatchAny({
+		TokenType::Equal,
+		TokenType::PlusEqual,
+		TokenType::MinusEqual,
+		TokenType::StarEqual,
+		TokenType::SlashEqual })
+		) {
+		const Token opr = Previous();
+		if (!IsPlace(*target)) {
+			Fail(opr, "invalid assignment target");
+		}
+
+		ExpressionPointer val = Expression();
+		Expect(TokenType::Semicolon, "expected ';' after assignment");
+		return std::make_unique<AssignStatement>(
+			std::string(opr.lexeme),
+			std::move(target),
+			std::move(val),
+			opr.line,
+			opr.column
+		);
+	}
+	if (MatchAny({
+		TokenType::PlusPlus,
+		TokenType::MinusMinus })
+		) {
+		const Token opr = Previous();
+		if (!IsPlace(*target)) {
+			Fail(opr, "invalid increment/decrement target");
+		}
+
+		Expect(TokenType::Semicolon, "expected ';' after increment/decrement");
+		return std::make_unique<AssignStatement>(
+			std::string(opr.lexeme),
+			std::move(target),
+			nullptr,
+			opr.line,
+			opr.column
+		);
+	}
+	const int line = target->line;
+	const int column = target->column;
+	Expect(TokenType::Semicolon, "expected ';' after expression");
+
+	return std::make_unique<ExprStatement>(
+		std::move(target),
+		line,
+		column
+	);
 }
 
 
@@ -268,4 +327,9 @@ std::vector<StatementPointer> Parser::ParseProgram() {
 		program.clear();
 	}
 	return program;
+}
+
+bool Parser::IsPlace(const ::Expression& e) {
+	return dynamic_cast<const IdentExpr*>(&e) != nullptr ||
+		dynamic_cast<const IndexExpr*>(&e) != nullptr;
 }

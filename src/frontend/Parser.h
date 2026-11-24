@@ -28,6 +28,7 @@ private:
 	const Token& Advance();
 	bool MatchAny(const std::vector<TokenType>& types);
 	bool Check(TokenType type) const;
+	bool IsPlace(const Expression& e);
 	const Token& Expect(TokenType type, const std::string& msg);
 	[[noreturn]]
 	void Fail(const Token& at, const std::string& msg);
@@ -40,6 +41,7 @@ private:
 
 	StatementPointer Declaration();
 	StatementPointer Statement();
+	StatementPointer SimpleStatement();
 
 private:
 	const std::vector<Token>& mTokens;
