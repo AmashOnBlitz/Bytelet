@@ -3,6 +3,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 #define OVERRIDE__TO_STRING__FUNCTION std::string ToString() const override
 
@@ -98,5 +100,89 @@ public:
 	}
 };
 
+class CallExpr : public Expression {
+public:
+	ExpressionPointer callee;
+	std::vector<ExpressionPointer> args;
+	CallExpr(ExpressionPointer c, std::vector<ExpressionPointer> a, int l, int col)
+		: Expression(l, col), callee(std::move(c)), args(std::move(a)) {
+	}
+	OVERRIDE__TO_STRING__FUNCTION{
+		std::string s = "(call " + callee->ToString();
+		for (const auto& a : args) s += " " + a->ToString();
+		return s + ")";
+	}
+};
+
+class IndexExpr : public Expression {
+public:
+	ExpressionPointer object;
+	ExpressionPointer index;
+	IndexExpr(ExpressionPointer o, ExpressionPointer i, int l, int c)
+		: Expression(l, c), object(std::move(o)), index(std::move(i)) {
+	}
+	OVERRIDE__TO_STRING__FUNCTION{
+		return "(index " + object->ToString() + " " + index->ToString() + ")";
+	}
+};
+
+
+
+class Statement {
+public:
+	int line;
+	int column;
+	Statement(int l, int c) : line(l), column(c) {}
+	virtual ~Statement() = default;
+	virtual std::string ToString() const = 0;
+};
+using StatementPointer = std::unique_ptr<Statement>;
+
+
+class VarDeclStatement : public Statement {
+public:
+	bool isMutable;
+	std::string name;
+	std::string typeName;
+	ExpressionPointer init;
+	VarDeclStatement(bool m, std::string n, std::string t, ExpressionPointer i, int l, int c)
+		: Statement(l, c), 
+		isMutable(m),
+		name(std::move(n)),
+		typeName(std::move(t)),
+		init(std::move(i)) 
+	{
+	}
+	OVERRIDE__TO_STRING__FUNCTION{
+		std::string s = std::string("(") + (isMutable ? "var" : "let") + " " + name;
+		if (!typeName.empty()) s += ":" + typeName;
+		if (init) s += " " + init->ToString();
+		return s + ")";
+	}
+};
+
+class ExprStatement : public Statement {
+public:
+	ExpressionPointer expr;
+	ExprStatement(ExpressionPointer e, int l, int c) : Statement(l, c), expr(std::move(e)) {}
+	OVERRIDE__TO_STRING__FUNCTION{
+		return "(expr " + expr->ToString() + ")"; 
+	}
+};
+
+class AssignStatement : public Statement {
+public:
+	std::string op;
+	ExpressionPointer target;
+	ExpressionPointer value;
+	AssignStatement(std::string o, ExpressionPointer t, ExpressionPointer v, int l, int c)
+		: Statement(l, c), op(std::move(o)), target(std::move(t)), value(std::move(v)) {
+	}
+	OVERRIDE__TO_STRING__FUNCTION {
+		std::string s = "(" + op + " " + target->ToString();
+		if (value) s += " " + value->ToString();
+		return s + ")";
+	}
+};
 
 #endif // !AST_H

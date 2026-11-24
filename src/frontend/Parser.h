@@ -5,6 +5,7 @@
 #include <vector>
 #include "Token.h"
 #include "Ast.h"
+#include <memory>
 
 struct ParseError
 {
@@ -17,7 +18,7 @@ class Parser {
 public:
 	Parser(const std::vector<Token>& Tokens);
 	ExpressionPointer ParseExpression();
-	
+	std::vector<StatementPointer> ParseProgram();
 	const std::vector<ParseError>& Errors();
 
 private:
@@ -34,7 +35,11 @@ private:
 	ExpressionPointer Expression();
 	ExpressionPointer ParseBinary(std::size_t level);
 	ExpressionPointer Unary();
+	ExpressionPointer Postfix();
 	ExpressionPointer Primary();
+
+	StatementPointer Declaration();
+	StatementPointer Statement();
 
 private:
 	const std::vector<Token>& mTokens;

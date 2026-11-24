@@ -1,0 +1,5 @@
+let name = "Amash";
+var age: int = 16;
+var score: int;
+var title: string;
+let total = 10 + 5 * 2;

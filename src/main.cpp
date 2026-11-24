@@ -56,6 +56,37 @@ int DumpTokens(const std::string& path) {
 }
 
 [[nodiscard]]
+int ParseProgram(const std::string& path) {
+	std::ifstream f(path, std::ios::binary);
+	if (!f) {
+		std::cerr << "error: cannot open '" << path << "'\n";
+		return EXITNOINPUT;
+	}
+	std::stringstream buff;
+	buff << f.rdbuf();
+	std::string corpus = buff.str();
+
+	Lexer lexer(corpus);
+	std::vector<Token> tokens = lexer.Tokenize();
+	if (!lexer.errors().empty()) {
+		std::cerr << "error: cannot proceed parsing, lexer faced error(s)\n";
+		return EXITDATAERR;
+	}
+
+	Parser parser(tokens);
+	auto program = parser.ParseProgram();
+
+	for (const auto& statement : program) {
+		std::cout << statement->ToString() << "\n";
+	}
+	for (const auto& err : parser.Errors()) {
+		std::cerr << path << ":" << err.line << ":" << err.column
+			<< ": error: " << err.msg << "\n";
+	}
+	return parser.Errors().empty() ? EXITOK : EXITDATAERR;
+}
+
+[[nodiscard]]
 int PrintAst(const std::string& source) {
 	Lexer lexer(source);
 	std::vector<Token> tokens = lexer.Tokenize();
@@ -123,7 +154,9 @@ int main(int argc, char* argv[]) {
 	if (argc > iCmd && std::string_view(argv[iCmd]) == "--tokens") {
 		return DumpTokens(path);
 	}
-
+	if (argc > iCmd && std::string_view(argv[iCmd]) == "--ast") {
+		return ParseProgram(path);
+	}
 	std::cerr << "error: running scripts is not implemented yet (got '" << arg << ";)\n";
 	return EXITUSAGE;
 }

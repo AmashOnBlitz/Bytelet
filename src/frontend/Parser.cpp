@@ -64,7 +64,10 @@ const Token& Parser::Advance()
 bool Parser::MatchAny(const std::vector<TokenType>& types)
 {
 	for (TokenType t : types) {
-		if (Check(t)) { Advance(); return true; }
+		if (Check(t)) { 
+			Advance();
+			return true;
+		}
 	}
 	return false;
 }
@@ -112,10 +115,40 @@ ExpressionPointer Parser::Unary() {
 		result = std::make_unique<UnaryExpr>(std::string(op.lexeme), std::move(operand), op.line, op.column);
 	}
 	else {
-		result = Primary();
+		//result = Primary();
+		result = Postfix(); 
 	}
 	mDepth--;
 	return result;
+}
+
+ExpressionPointer Parser::Postfix() {
+	ExpressionPointer expr = Primary();
+
+	while (true)
+	{
+		if (MatchAny({ TokenType::LParen })) {
+			std::vector<ExpressionPointer> args;
+			if (!Check(TokenType::RParen)) {
+				do {
+					args.push_back(Expression());
+				} while (MatchAny({ TokenType::Comma }));
+			}
+			Expect(TokenType::RParen, "expected ')' after arguments");
+			int line = expr->line, col = expr->column;
+			expr = std::make_unique<CallExpr>(std::move(expr), std::move(args), line, col);
+		}
+		else if (MatchAny({ TokenType::LBracket })) {
+			ExpressionPointer index = Expression();
+			Expect(TokenType::RBracket, "expected ']' after index");
+			int line = expr->line, col = expr->column;
+			expr = std::make_unique<IndexExpr>(std::move(expr), std::move(index), line, col);
+		}
+		else {
+			break;
+		}
+	}
+	return expr;
 }
 
 ExpressionPointer Parser::Primary() {
@@ -167,4 +200,72 @@ ExpressionPointer Parser::Primary() {
 	default:
 		Fail(t, "expected an expression");
 	}
+}
+
+StatementPointer Parser::Declaration()
+{
+	const Token keyword = Advance();
+	bool isMutable = (keyword.type == TokenType::KwVar);
+	const Token name = Expect(
+		TokenType::Identifier,
+		"expected a variable name"
+	);
+	std::string typeName;
+	if (MatchAny({ TokenType::Colon })) {
+		if (MatchAny(
+			{
+				TokenType::KwInt,
+				TokenType::KwFloat,
+				TokenType::KwBool,
+				TokenType::KwString
+			}
+		)) 
+		{
+			typeName = std::string(Previous().lexeme);
+		}
+		else {
+			Fail(Current(), "expected a type name after ':'");
+		}
+	}
+
+	ExpressionPointer equatedVal;
+	if (MatchAny({ TokenType::Equal })) {
+		equatedVal = Expression();
+	}
+	else if (!isMutable) {
+		Fail(name, "immutable variable '" + std::string(name.lexeme) + "' must be initialized");
+	}
+	else if (typeName.empty()) {
+		Fail(name, "cannot infer type of '" + std::string(name.lexeme) + "': add a type or an initializer");
+	}
+	Expect(TokenType::Semicolon, "expected ';' after declaration");
+
+	return std::make_unique<VarDeclStatement>(
+		isMutable,
+		std::string(name.lexeme),
+		std::move(typeName),
+		std::move(equatedVal),
+		keyword.line,
+		keyword.column
+	);
+}
+
+StatementPointer Parser::Statement()
+{
+	return Declaration();
+}
+
+
+std::vector<StatementPointer> Parser::ParseProgram() {
+	mErrors.clear();
+	mPos = 0;
+	mDepth = 0;
+	std::vector<StatementPointer> program;
+	try {
+		while (!AtEnd()) program.push_back(Statement());
+	}
+	catch (const ParseFailure&) {
+		program.clear();
+	}
+	return program;
 }
