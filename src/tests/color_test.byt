@@ -4,6 +4,8 @@ let x = 10
 var y = 3.14
 var name = "Bytelite"
 var flag = true
+var abc:Int = 12
+let def:Bool = true
 fn add(a, b) {
     return a + b
 }
@@ -30,6 +32,6 @@ x *= 2
 y /= 2
 x++
 
-if (x == 10 && y != 0) {
+if (x == 10 && y != 0) -> Int {
     print("yes")
 }

@@ -253,10 +253,26 @@ StatementPointer Parser::Declaration()
 
 StatementPointer Parser::Statement()
 {
-	if (Check(TokenType::KwLet) || Check(TokenType::KwVar))
-		return Declaration();
+	if (++mDepth > MAX_DEPTH) Fail(Current(), "statements are nested too deeply");
 
-	return SimpleStatement();
+	StatementPointer result;
+	if (Check(TokenType::KwLet) || Check(TokenType::KwVar))
+		result = Declaration();
+
+	else if (Check(TokenType::KwIf))
+		result = ParseIf();
+
+	else if (Check(TokenType::KwWhile))
+		result = ParseWhile();
+
+	else if (Check(TokenType::LBrace))
+		result = ParseBlock();
+
+	else 
+		result = SimpleStatement();
+
+	mDepth--;
+	return result;
 }
 
 StatementPointer Parser::SimpleStatement()
@@ -314,6 +330,74 @@ StatementPointer Parser::SimpleStatement()
 	);
 }
 
+StatementPointer Parser::ParseBlock()
+{
+	const Token openBrace = Advance();
+	std::vector<StatementPointer> statements;
+
+	while (!Check(TokenType::RBrace) && !AtEnd()) {
+		const std::size_t startPos = mPos;
+		const int startDepth = mDepth;
+		try {
+			statements.push_back(Statement());
+		}
+		catch (const ParseFailure&) {
+			Recover(startPos, startDepth);
+		}
+	}
+	Expect(TokenType::RBrace, "expected '}' to close block");
+	return std::make_unique<BlockStatement>(
+		std::move(statements),
+		openBrace.line,
+		openBrace.
+		column
+	);
+}
+
+StatementPointer Parser::ParseIf()
+{
+	const Token currentChar = Advance();
+	Expect(TokenType::LParen, "expected '(' after 'if'");
+	ExpressionPointer cond = Expression();
+	Expect(TokenType::RParen, "expected ')' after condition");
+
+	StatementPointer thenBranch = Body();
+	StatementPointer elseBranch;
+	if (MatchAny({ TokenType::KwElse })) {
+		elseBranch = Body();
+	}
+	return std::make_unique<IfStatement>(
+		std::move(cond),
+		std::move(thenBranch),
+		std::move(elseBranch),
+		currentChar.line,
+		currentChar.column
+	);
+}
+
+StatementPointer Parser::ParseWhile()
+{
+	const Token currChar = Advance();
+	Expect(TokenType::LParen, "expected '(' after 'while'");
+	ExpressionPointer cond = Expression();
+	Expect(TokenType::RParen, "expected ')' after condition");
+
+	StatementPointer body = Body();
+	return std::make_unique<WhileStatement>(
+		std::move(cond),
+		std::move(body),
+		currChar.line,
+		currChar.column
+	);
+}
+
+StatementPointer Parser::Body()
+{
+	if (Check(TokenType::KwLet) || Check(TokenType::KwVar))
+		Fail(Current(), "declaration is not allowed here, use braces");
+	return Statement();
+}
+
 
 std::vector<StatementPointer> Parser::ParseProgram() {
 	mErrors.clear();
@@ -321,12 +405,13 @@ std::vector<StatementPointer> Parser::ParseProgram() {
 	mDepth = 0;
 	std::vector<StatementPointer> program;
 	while (!AtEnd()) {
+		const std::size_t startPos = mPos;
+		const int startDepth = mDepth;
 		try {
 			program.push_back(Statement());
 		}
 		catch (const ParseFailure&) {
-			mDepth = 0;
-			Synchronize();
+			Recover(startPos, startDepth);
 		}
 	}
 	return program;
@@ -339,9 +424,23 @@ bool Parser::IsPlace(const ::Expression& e) {
 
 void Parser::Synchronize()
 {
-	while (!AtEnd()) {
-		if (Previous().type == TokenType::Semicolon) return;
-		if (Check(TokenType::KwLet) || Check(TokenType::KwVar)) return;
+	while (!AtEnd())
+	{
+		if (mPos > 0 && Previous().type == TokenType::Semicolon) return;
+
+		if (Check(TokenType::KwLet) ||
+			Check(TokenType::KwVar) ||
+			Check(TokenType::KwIf) ||
+			Check(TokenType::KwWhile) ||
+			Check(TokenType::KwFor) ||
+			Check(TokenType::KwFn) ||
+			Check(TokenType::KwReturn) ||
+			Check(TokenType::KwBreak) ||
+			Check(TokenType::KwContinue) ||
+			Check(TokenType::RBrace)) 
+		{
+			return;
+		}
 		Advance();
 	}
 }
@@ -352,4 +451,11 @@ void Parser::ExpectSemicolon(const std::string& msg)
 	const Token& last = Previous();
 	mErrors.push_back({ last.line, last.column + static_cast<int>(last.lexeme.size()), msg });
 	throw ParseFailure{};
+}
+
+void Parser::Recover(std::size_t startPos, int startDepth)
+{
+	mDepth = startDepth;
+	if (mPos == startPos && !AtEnd()) Advance();
+	Synchronize();
 }

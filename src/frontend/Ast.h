@@ -185,4 +185,66 @@ public:
 	}
 };
 
+class BlockStatement : public Statement {
+public:
+	std::vector<StatementPointer> statements;
+	BlockStatement(std::vector<StatementPointer> s, int l, int c)
+		: Statement(l, c), statements(std::move(s)) {
+
+	}
+	OVERRIDE__TO_STRING__FUNCTION{
+		std::stringstream ss;
+		ss << "(block";
+		for (const auto& stmt : statements) {
+			ss << " " << stmt->ToString();
+		}
+		ss << ")";
+		return ss.str();
+	}
+};
+
+class IfStatement : public Statement {
+public:
+	ExpressionPointer condition;
+	StatementPointer thenBranch;
+	StatementPointer elseBranch;
+	IfStatement(
+		ExpressionPointer cond,
+		StatementPointer then,
+		StatementPointer Else,
+		int l,
+		int c)
+		: Statement(l, c), 
+		condition(std::move(cond)),
+		thenBranch(std::move(then)),
+		elseBranch(std::move(Else)) 
+	{
+
+	}
+
+	OVERRIDE__TO_STRING__FUNCTION{
+	std::string s = "(if " + condition->ToString()
+		+ " " + thenBranch->ToString();
+	if (elseBranch) s += " " + elseBranch->ToString();
+	return s + ")";
+	}
+};
+
+class WhileStatement : public Statement {
+public:
+	ExpressionPointer condition;
+	StatementPointer body;
+
+	WhileStatement(ExpressionPointer cond, StatementPointer Body, int l, int c)
+		: Statement(l, c), condition(std::move(cond)), body(std::move(Body)) {
+
+	}
+
+	OVERRIDE__TO_STRING__FUNCTION{
+	return "(while " + condition->ToString()
+		+ " " + body->ToString() + ")";
+	}
+};
+
+
 #endif // !AST_H

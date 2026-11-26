@@ -34,6 +34,7 @@ private:
 	void Fail(const Token& at, const std::string& msg);
 	void Synchronize();
 	void ExpectSemicolon(const std::string& msg);
+	void Recover(std::size_t startPos, int startDepth);
 
 	ExpressionPointer Expression();
 	ExpressionPointer ParseBinary(std::size_t level);
@@ -44,6 +45,11 @@ private:
 	StatementPointer Declaration();
 	StatementPointer Statement();
 	StatementPointer SimpleStatement();
+
+	StatementPointer ParseBlock();
+	StatementPointer ParseIf();
+	StatementPointer ParseWhile();
+	StatementPointer Body();
 
 private:
 	const std::vector<Token>& mTokens;
